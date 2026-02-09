@@ -2,6 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi import HTTPException
 from contextlib import asynccontextmanager
 import os
 import logging
@@ -101,17 +103,49 @@ app.include_router(calls.router)
 app.include_router(conversations.router)
 app.include_router(knowledge.router)
 
-# Root endpoint
-@app.get("/")
+# Mount static files (CSS, JS) at root level for easy access
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+if os.path.exists(frontend_path):
+    # Mount at /static for separate access
+    # app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+    logger.info(f"✓ Frontend files available from {frontend_path}")
+
+# Root endpoint - serve HTML and other files
+@app.get("/{filename}")
+async def serve_static(filename: str):
+    """Serve static files (CSS, JS, etc.)"""
+    if filename == "":
+        filename = "index.html"
+    
+    file_path = os.path.join(os.path.dirname(__file__), "..", "frontend", filename)
+    if os.path.exists(file_path):
+        if filename.endswith(".css"):
+            return FileResponse(file_path, media_type="text/css")
+        elif filename.endswith(".js"):
+            return FileResponse(file_path, media_type="application/javascript")
+        elif filename.endswith(".html"):
+            return FileResponse(file_path, media_type="text/html")
+        else:
+            return FileResponse(file_path)
+    else:
+        # If file not found, return 404 so it doesn't surface as a server error
+        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+
+@app.get("/", response_class=FileResponse)
 async def root():
-    """Root endpoint"""
-    return {
-        "name": settings.APP_NAME,
-        "version": "1.0.0",
-        "status": "running",
-        "docs": "/docs",
-        "health": "/api/v1/health"
-    }
+    """Serve the main UI page"""
+    index_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    else:
+        # Fallback to JSON if HTML not found
+        return {
+            "name": settings.APP_NAME,
+            "version": "1.0.0",
+            "status": "running",
+            "docs": "/docs",
+            "health": "/api/v1/health"
+        }
 
 
 if __name__ == "__main__":

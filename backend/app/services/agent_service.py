@@ -209,3 +209,7 @@ Provide a helpful, concise response (max 200 characters):"""
             }
             for call_id, context in self.conversations.items()
         ]
+
+    def get_conversation(self, call_id: str) -> Optional[Dict[str, Any]]:
+        """Return the raw conversation context for a given call_id"""
+        return self.conversations.get(call_id)
