@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVR AI Agent System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>IVR AI Agent System</span>
+                </div>
+                <div class="navbar-menu">
+                    <a href="#" class="nav-link active" onclick="showSection('dashboard')">Dashboard</a>
+                    <a href="#" class="nav-link" onclick="showSection('call')">Make Call</a>
+                    <a href="#" class="nav-link" onclick="showSection('knowledge')">Knowledge Base</a>
+                    <a href="#" class="nav-link" onclick="showSection('settings')">Settings</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="section-header">
+                    <h1>Dashboard</h1>
+                    <p>Monitor and manage IVR calls</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #3498db;">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="activeCallsCount">0</div>
+                            <div class="stat-label">Active Calls</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #2ecc71;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalCallsCount">0</div>
+                            <div class="stat-label">Total Calls</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e74c3c;">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="docsCount">0</div>
+                            <div class="stat-label">Knowledge Docs</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #f39c12;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="systemStatus">Online</div>
+                            <div class="stat-label">System Status</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Calls List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Active Calls</h2>
+                        <button class="btn btn-primary" onclick="refreshActiveCalls()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="activeCallsList" class="calls-list">
+                            <p class="empty-state">No active calls</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Make Call Section -->
+            <section id="call" class="section">
+                <div class="section-header">
+                    <h1>Initiate Call</h1>
+                    <p>Start a new IVR call session</p>
+                </div>
+
+                <div class="grid-2">
+                    <!-- Call Initiation Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Call Details</h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="callForm" onsubmit="initiateCall(event)">
+                                <div class="form-group">
+                                    <label for="userName">Your Name</label>
+                                    <input type="text" id="userName" name="userName" required placeholder="John Doe">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="userPhone">Phone Number</label>
+                                    <input type="tel" id="userPhone" name="userPhone" required placeholder="+1 (234) 567-8900">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="callTopic">Topic/Issue</label>
+                                    <select id="callTopic" name="callTopic" required>
+                                        <option value="">Select a topic</option>
+                                        <option value="billing">Billing Inquiry</option>
+                                        <option value="technical">Technical Support</option>
+                                        <option value="account">Account Management</option>
+                                        <option value="general">General Inquiry</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="language">Language</label>
+                                    <select id="language" name="language">
+                                        <option value="en">English</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary full-width">
+                                    <i class="fas fa-phone"></i> Initiate Call
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Call Interface -->
+                    <div id="callInterface" style="display: none;">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Active Conversation</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="call-info">
+                                    <div class="info-row">
+                                        <span>Call ID:</span>
+                                        <span id="currentCallId" class="mono"></span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span>Duration:</span>
+                                        <span id="callDuration">00:00</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span>Status:</span>
+                                        <span id="callStatus" class="badge badge-success">Connected</span>
+                                    </div>
+                                </div>
+
+                                <div class="chat-container">
+                                    <div id="chatMessages" class="chat-messages"></div>
+                                </div>
+
+                                <div class="chat-input-group">
+                                    <input type="text" id="messageInput" placeholder="Type your message..." 
+                                           onkeypress="handleMessageKeypress(event)">
+                                    <button onclick="sendMessage()" class="btn btn-primary">
+                                        <i class="fas fa-send"></i>
+                                    </button>
+                                </div>
+
+                                <div class="call-actions">
+                                    <button onclick="transferCall()" class="btn btn-secondary">
+                                        <i class="fas fa-share"></i> Transfer
+                                    </button>
+                                    <button onclick="endCall()" class="btn btn-danger">
+                                        <i class="fas fa-phone-slash"></i> End Call
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Knowledge Base Section -->
+            <section id="knowledge" class="section">
+                <div class="section-header">
+                    <h1>Knowledge Base</h1>
+                    <p>Manage documents and search knowledge base</p>
+                </div>
+
+                <div class="grid-2">
+                    <!-- Add Document -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Add Document</h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="docForm" onsubmit="addDocument(event)">
+                                <div class="form-group">
+                                    <label for="docTitle">Title</label>
+                                    <input type="text" id="docTitle" name="docTitle" required placeholder="Document title">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="docCategory">Category</label>
+                                    <select id="docCategory" name="docCategory">
+                                        <option value="general">General</option>
+                                        <option value="billing">Billing</option>
+                                        <option value="technical">Technical</option>
+                                        <option value="account">Account</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="docContent">Content</label>
+                                    <textarea id="docContent" name="docContent" required rows="5" placeholder="Document content"></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary full-width">
+                                    <i class="fas fa-plus"></i> Add Document
+                                </button>
+                            </form>
+
+                            <div style="margin-top: 20px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                                <h3>Upload File</h3>
+                                <div class="file-upload">
+                                    <input type="file" id="docFile" accept=".txt,.pdf,.doc" onchange="uploadDocument(event)">
+                                    <label for="docFile">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Click to upload or drag and drop</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search & Browse -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Search & Browse</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <input type="text" id="searchQuery" placeholder="Search knowledge base..." 
+                                       onkeypress="handleSearchKeypress(event)">
+                                <button onclick="searchKB()" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+
+                            <div style="margin-top: 20px;">
+                                <h3>All Documents</h3>
+                                <div id="documentsList" class="documents-list">
+                                    <p class="empty-state">No documents found</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section">
+                <div class="section-header">
+                    <h1>Settings</h1>
+                    <p>Configure system preferences</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>API Configuration</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="settingsForm" onsubmit="saveSettings(event)">
+                            <div class="form-group">
+                                <label for="apiEndpoint">API Endpoint</label>
+                                <input type="text" id="apiEndpoint" value="http://localhost:8000" placeholder="API endpoint URL">
+                                <small>The backend API endpoint URL</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maxRetries">Max Retries</label>
+                                <input type="number" id="maxRetries" min="1" max="10" value="3">
+                                <small>Maximum number of retry attempts for failed requests</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="timeout">Timeout (seconds)</label>
+                                <input type="number" id="timeout" min="5" max="300" value="30">
+                                <small>Request timeout duration</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h2>System Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-row">
+                            <span>Version:</span>
+                            <span>1.0.0</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Environment:</span>
+                            <span>Production</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Last Updated:</span>
+                            <span id="lastUpdated">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Backend Status:</span>
+                            <span id="backendStatus" class="badge badge-loading">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  ivr-backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4-turbo-preview
+      - VECTOR_DB_PATH=/app/data/chroma
+    volumes:
+      - ./data:/app/data
+      - ./backend:/app/backend
+    command: python backend/main.py
+
+  ivr-frontend:
+    image: node:18-alpine
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/app
+    command: npx http-server -p 8080
+
+volumes:
+  chroma_data:
